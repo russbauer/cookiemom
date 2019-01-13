@@ -174,8 +174,7 @@ class Initial extends AbstractMigration
         $user->username = 'admin';
         $user->password = "passwd";
         $user->access_level = 90;
-
-        $usersTable->save($user);
+        $usersTable->save($user, ['atomic' => false]);
     }
 
     public function down()
