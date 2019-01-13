@@ -12,10 +12,7 @@ The Cookie Manager (TCM) is a web application to help manage the logistics of gi
 
 ## Configuration
 
-Read and edit `config/app.php`.  Settings you must change to run the app:
-* Salt
-* Email 
-* Database connection
+Rename 'config/.env.default' to config/.env' and edit it to reflect reflect your setup.
 
 
 
