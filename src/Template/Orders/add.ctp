@@ -46,7 +46,7 @@
         <tr>
           <th scope="row">
             <?= $cookie->name ?>
-            <?= $this->Form->control("order[" . $i . "].cookie_id", [ 'type' => 'hidden', 'default' => $cookie->id]); ?>
+            <?= $this->Form->control("order[" . $i . "].cookie_id", ['type' => 'hidden', 'default' => $cookie->id]); ?>
             <?= $this->Form->control("order[" . $i . "].cookie_name", [ 'type' => 'hidden', 'default' => $cookie->name]); ?>
           </th>
           <td>
@@ -54,7 +54,8 @@
             ['label' => false, 
             'required' => true, 
             'type' => 'number', 
-            'v-model' => "orders[{$i}].quantity"]); ?>
+            'v-model' => "orders[{$i}].quantity"
+            ]); ?>
           </td>
         </tr>
         <?php 
@@ -93,7 +94,8 @@
           </thead>
           <tbody>
           <?php 
-            // Keep counting from above
+            // Keep counting from above, but keep new counter for Digital
+            $j = 0;
             foreach ($cookies as $cookie) : ?>
           <tr>
             <th scope="row">
@@ -107,11 +109,11 @@
               'label' => false, 
               ':required' => "hasDigital == 'true'? true : false", 
               'type' => 'number',
-              'v-model' => "orders[{$i}].quantity"]); ?>
+              'v-model' => "digitalOrders[{$j}].quantity"]); ?>
             </td>
           </tr>
           <?php 
-              $i++; endforeach; ?>
+              $i++; $j++; endforeach; ?>
           </tbody>
         </table>
       </div>
@@ -130,8 +132,8 @@
         </h5>
     </div>
     <div class="card-body">
-      You have entered a total of {{totalCookies}} boxes.  This totals <b>${{totalMoney}}</b> 
-      that you must collect and return to the troop.  Payment is due by March 31st 2019.
+      You have entered a total of {{totalCookies}} boxes. Digital Cookies are pre-paid so you do not need to collect money for them.  
+      The total due is <b>${{totalMoney}}</b> that you must collect and return to the troop.  Payment is due by <b>March 24th 2019</b>.
       <br/><br/>
       <div class="alert alert-danger" role="alert">
         Once you take receipt of the cookies, they cannot be returned to the troop.  You must sell all the cookies you have ordered.
@@ -156,9 +158,7 @@ var orderApp = new Vue({
       if (valid) {
         event.preventDefault();
         this.step++;
-        console.log("Valid");
       } else {
-        console.log("Not Valid");
       }
     },
     previous: function(event) {
@@ -166,25 +166,37 @@ var orderApp = new Vue({
       this.step--;
     },
     calculateTotal: function() {
-      this.totalCookies = 0;
+      this.totalTraditional = 0;
+      this.totalDigital = 0;
       for (var k in this.orders) {
         if (this.orders[k].quantity) {
-          this.totalCookies += parseInt(this.orders[k].quantity);
+          this.totalTraditional += parseInt(this.orders[k].quantity);
+        }
+        if (this.digitalOrders[k].quantity) {
+          this.totalDigital += parseInt(this.digitalOrders[k].quantity)
         }
       }
-      this.totalMoney = this.totalCookies * 5.00;
+      console.log("Trad: " + this.totalTraditional + ", digital: " + this.totalDigital);
+      this.totalCookies = this.totalTraditional + this.totalDigital;
+      this.totalMoney = this.totalTraditional * 5.00;
     }
   },
   data: {
     step: 1,
     hasDigital: "",
     orders: [],
+    digitalOrders: [],
+    totalTraditional: 0,
+    totalDigital: 0,
     totalCookies: 0,
     totalMoney: 0
   },
   created: function () {
-    for (var i = 0; i < 20; i++) {
-      this.orders.push({id: ""});
+    for (var i = 0; i < 10; i++) {
+      this.orders.push({quantity: ""});
+    }
+    for (var i = 0; i < 10; i++) {
+      this.digitalOrders.push({quantity: ""});
     }
   }
 });

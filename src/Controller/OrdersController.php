@@ -122,7 +122,6 @@ class OrdersController extends AppController
             $user = null;
         }
 
-        // Add bulk
         if ($this->request->is(['patch', 'post', 'put'])) {
             $request = $this->request->getData();
             $allSuccess = true;
@@ -159,10 +158,13 @@ class OrdersController extends AppController
                         ->subject('Cookie Order Receipt')
                         ->replyTo('toddrogers3286@gmail.com')
                         ->send();
-                    return $this->redirect(['action' => 'complete']);
-                } else {
-                    $this->Flash->success(__('The order has been saved.'));       
-                    return $this->redirect(['action' => 'index']);
+
+                    if ($isTCM) {
+                        $this->Flash->success(__('The order has been saved.'));       
+                        return $this->redirect(['action' => 'index']);
+                    } else {
+                        return $this->redirect(['action' => 'complete']);
+                    }
                 }
             }
         }
