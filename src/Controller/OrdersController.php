@@ -13,6 +13,12 @@ use Cake\Utility\Hash;
 
 class OrdersController extends AppController
 {
+    public function beforeFilter(Event $event)
+    {
+        parent::beforeFilter($event);
+        $this->Auth->allow(['add', 'error', 'complete']);
+    }
+
     public function index()
     {
         $usersData = $this->Orders->Users->find('all', ['keyField' => 'username'])

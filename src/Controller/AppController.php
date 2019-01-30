@@ -45,7 +45,7 @@ class AppController extends Controller
     public function beforeFilter(Event $event)
     {
         $this->Auth->deny();
-        $this->Auth->allow(['login', 'logout', 'reset', 'resetLink', 'edit', 'complete']);
+        $this->Auth->allow(['login', 'logout', 'reset', 'resetLink']);
     }
 
     /**
