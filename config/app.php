@@ -286,7 +286,8 @@ return [
     /**
      * Configures logging options
      */
-    'Log' => [
+
+    /*'Log' => [
         'debug' => [
             'className' => 'Cake\Log\Engine\FileLog',
             'path' => LOGS,
@@ -311,6 +312,17 @@ return [
             'url' => env('LOG_QUERIES_URL', null),
             'scopes' => ['queriesLog'],
         ],
+    ],*/
+
+    'Log' => [
+        'debug' => [
+            'className' => 'Cake\Log\Engine\ConsoleLog',
+            'levels' => ['notice', 'info', 'debug'],
+        ],
+        'error' => [
+            'className' => 'Cake\Log\Engine\ConsoleLog',
+            'levels' => ['warning', 'error', 'critical', 'alert', 'emergency'],
+        ]
     ],
 
     /**
