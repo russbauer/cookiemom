@@ -23,8 +23,7 @@
         <tbody>
         <?php 
             $i = 0; 
-            foreach ($cookies as $cookie) : 
-                if ($cookie->not_for_delivery) continue; ?>
+            foreach ($cookies as $cookie) : ?>
         <tr>
             <th scope="row">
             <?= $cookie->name ?><br/>

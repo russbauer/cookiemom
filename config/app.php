@@ -226,7 +226,8 @@ return [
     'Email' => [
         'default' => [
             'transport' => 'default',
-            'from' => [env('EMAIL_REPLY_TO') => env('EMAIL_REPLY_NAME') ],
+            'replyTo' => [env('EMAIL_REPLY_TO') => env('EMAIL_REPLY_NAME') ],
+            'from' =>  [env('EMAIL_USERNAME') => env('EMAIL_REPLY_NAME') ]
         ],
     ],
 

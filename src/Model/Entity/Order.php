@@ -33,6 +33,5 @@ class Order extends Entity
         'user' => true,
         'cookie' => true,
         'digital' => true
-
     ];
 }

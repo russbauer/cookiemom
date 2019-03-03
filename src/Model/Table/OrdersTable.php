@@ -44,6 +44,8 @@ class OrdersTable extends Table
         $this->belongsTo('Cookies', [
             'foreignKey' => 'cookie_id'
         ]);
+        
+        $this->addBehavior('Timestamp');
     }
 
     /**

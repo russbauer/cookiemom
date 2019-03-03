@@ -16,7 +16,7 @@ class OrdersController extends AppController
     public function beforeFilter(Event $event)
     {
         parent::beforeFilter($event);
-        $this->Auth->allow(['add', 'error', 'complete']);
+        $this->Auth->allow(['enter', 'error', 'complete']);
     }
 
     public function index()
@@ -109,19 +109,11 @@ class OrdersController extends AppController
         $this->set(compact('cookies', 'orders', 'user'));
     }
 
-    public function add($userId = null, $hashId = null)
+    public function enter($userId = null, $hashId = null)
     {
-        $externalView = true;
-        $authLevel = $this->Auth->user('access_level');
-        $isTCM = false;
-        if ($authLevel >= Configure::read('AuthRoles.leader')) {
-            $isTCM = true;
-            $externalView = false;
-        }
-
         if ($userId > 0) {
             $user = $this->Orders->Users->get($userId);
-            if (!$isTCM && (!isset($user->order_token) || $user->order_token != $hashId)) {
+            if ((!isset($user->order_token) || $user->order_token != $hashId)) {
                 return $this->redirect(['action' => 'error']);
             }
         } else {
@@ -141,42 +133,132 @@ class OrdersController extends AppController
                     $order = $this->Orders->patchEntity($order, $orderData);
                     $orders[] = $orderData;
                     if (!$this->Orders->save($order)) {
+                        $allSuccess = false;
                         $this->Flash->error(__('Unable to add the order for cookie type - ' . $orderData['cookie_id']));
                     }
                 }
             }
 
             if ($allSuccess) {
-                if (isset($user)) {
-                    // Prevent coming back later
-                    $user->order_token = null;
-                    $this->Orders->Users->save($user);
-   
-                    $totalCookies = $request['totalCookies'];
-                    $totalMoney = $request['totalMoney'];
+                // Prevent coming back later
+                $user->order_token = null;
+                $this->Orders->Users->save($user);
 
-                    $email = new Email('default');
-                    $result = $email->from(['toddrogers3286@gmail.com' => 'The Cookie Mom'])
-                        ->template('receipt', 'default')
-                        ->emailFormat('html')
-                        ->viewVars(['orders' => $orders, 'totalMoney' => $totalMoney, 'totalCookies' => $totalCookies])
-                        ->to($user->email)
-                        ->subject('Cookie Order Receipt')
-                        ->replyTo('toddrogers3286@gmail.com')
-                        ->send();
+                $totalCookies = $request['totalCookies'];
+                $totalMoney = $request['totalMoney'];
 
-                    if ($isTCM) {
-                        $this->Flash->success(__('The order has been saved.'));       
-                        return $this->redirect(['action' => 'index']);
-                    } else {
-                        return $this->redirect(['action' => 'complete']);
-                    }
-                }
+                $email = new Email('default');
+                $result = $email->template('receipt', 'default')
+                    ->emailFormat('html')
+                    ->viewVars(['orders' => $orders, 'totalMoney' => $totalMoney, 'totalCookies' => $totalCookies])
+                    ->to($user->email)
+                    ->subject('Cookie Order Receipt')
+                    ->send();
+
+                return $this->redirect(['action' => 'complete']);
             }
         }
 
+        $cookies = $this->Orders->Cookies->find('all')->where('Cookies.not_for_delivery = 0')->order('Cookies.name');
+        $this->set(compact('cookies', 'user'));
+    }
+
+    public function add($userId = null) {
+
+        if ($this->request->is(['patch', 'post', 'put'])) {
+            $request = $this->request->getData();
+            $allSuccess = true;
+            $userId = $request['user_id'];
+            $cookieBoothUser = $this->Orders->Users->find('all')->where(['access_level' => 20])->first();
+            $orders = [];
+            foreach ($request['order'] as $orderData) {
+                if ($orderData['quantity'] > 0) {
+                    // Add
+                    $orderData['user_id'] = $userId;
+                    $order = $this->Orders->newEntity();
+                    $order = $this->Orders->patchEntity($order, $orderData);
+                    $orders[] = $orderData;
+                    if (!$this->Orders->save($order)) {
+                        $this->Flash->error(__('Unable to add the order for cookie type - ' . $orderData['cookie_id']));
+                        return;
+                    }
+
+                    // Subtract from Cookie Booth
+                    $orderData['user_id'] = $cookieBoothUser->id;
+                    $orderData['quantity'] = $orderData['quantity'] * -1;
+                    $order = $this->Orders->newEntity();
+                    $order = $this->Orders->patchEntity($order, $orderData);
+                    if (!$this->Orders->save($order)) {
+                        $this->Flash->error(__('Unable to debit order from Cookie Booth for cookie type - ' . $orderData['cookie_id']));
+                        return;
+                    }
+                }
+            }
+            $this->Flash->success(__('The order has been updated.'));
+            return $this->redirect(['action' => 'index']);
+        } 
+
+        $user = $this->Orders->Users->get($userId);
+        $cookies = $this->Orders->Cookies->find('all')->where('Cookies.not_for_delivery = 0')->order('Cookies.name');
+        $this->set(compact('cookies', 'user'));
+    }
+
+    public function inventory($userId) {
+        $user = $this->Orders->Users->get($userId);
+        $ordersQuery = $this->Orders->find('all')
+            ->contain(['Cookies'])
+            ->order('Cookies.name')
+            ->where(['Orders.user_id' => $userId, 'Cookies.not_for_delivery ' => 0]);
+
         $cookies = $this->Orders->Cookies->find('all')->order('Cookies.name');
-        $this->set(compact('cookies', 'user', 'externalView'));
+
+        // Combine
+        $ordersQuery = $ordersQuery->select([
+                'cookie_id',
+                'count' => $ordersQuery->func()->sum('quantity')
+            ])->group('cookie_id');
+        $orders  = Hash::combine($ordersQuery->toArray(), '{n}.cookie_id', '{n}.count');
+
+        $this->set(compact('orders', 'cookies', 'user'));
+    }
+
+    public function pickup($userId) {
+        $user = $this->Orders->Users->get($userId);
+        $ordersQuery = $this->Orders->find('all')
+            ->contain(['Cookies'])
+            ->order('Cookies.name')
+            ->where(['Orders.user_id' => $userId, 'Cookies.not_for_delivery ' => 0]);
+
+        if ($this->request->is(['patch', 'post', 'put'])) {    
+            $request = $this->request->getData();    
+            $user->pickup_confirmed = true;
+            $this->Orders->Users->save($user);
+
+            $totalMoney = $request['totalMoney'];
+            $totalCookies = $request['totalCookies'];
+            $orders = $this->Orders->find('all')->where(['Orders.user_id' => $userId])->contain(['Cookies']);
+
+            $email = new Email('default');
+            $result = $email->template('pickup', 'default')
+                ->emailFormat('html')
+                ->viewVars(['orders' => $ordersQuery, 'totalMoney' => $totalMoney, 'totalCookies' => $totalCookies])
+                ->to($user->email)
+                ->subject('Cookie Pickup Receipt')
+                ->send();
+            $this->Flash->success(__('The pickup has been confirmed.'));
+            return $this->redirect(['action' => 'index']);
+        }
+
+        $cookies = $this->Orders->Cookies->find('all')->order('Cookies.name');
+
+        // Combine
+        $ordersQuery = $ordersQuery->select([
+                'cookie_id',
+                'count' => $ordersQuery->func()->sum('quantity')
+            ])->group('cookie_id');
+        $orders  = Hash::combine($ordersQuery->toArray(), '{n}.cookie_id', '{n}.count');
+
+        $this->set(compact('orders', 'cookies', 'user', 'isCookieBooth'));
     }
 
     public function delete($id = null)

@@ -16,7 +16,8 @@ CREATE TABLE users (
 	`created` DATETIME,
 	`modified` DATETIME,
 	`active` TINYINT(1) NOT NULL DEFAULT 1,
-	`order_token` VARCHAR(255) NULL
+	`order_token` VARCHAR(255) NULL,
+	`pickup_confirmed` TINYINT(1) NOT NULL DEFAULT 0
 	PRIMARY KEY (id)
 );
 
@@ -50,3 +51,4 @@ INSERT INTO cookies (name, price) VALUES ('Thanks-A-Lot', 5);
 INSERT INTO cookies (name, price) VALUES ('Toffee-tastic', 5);
 INSERT INTO cookies (name, price) VALUES ('Caramel Chocolate Chip', 5);
 INSERT INTO cookies (name, price) VALUES ('Lemonades', 5);
+

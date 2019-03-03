@@ -53,7 +53,9 @@ class User extends Entity
         'email' => true,
         'created' => true,
         'modified' => true,
-        'active' => true
+        'active' => true,
+        'order_token' => true,
+        'pickup_confirmed'  => true
     ];
 
     /**
