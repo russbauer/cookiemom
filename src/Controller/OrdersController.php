@@ -208,15 +208,16 @@ class OrdersController extends AppController
         $ordersQuery = $this->Orders->find('all')
             ->contain(['Cookies'])
             ->order('Cookies.name')
-            ->where(['Orders.user_id' => $userId, 'Cookies.not_for_delivery ' => 0]);
+            ->where(['Orders.user_id' => $userId, 'Cookies.not_for_delivery ' => false]);
 
         $cookies = $this->Orders->Cookies->find('all')->order('Cookies.name');
 
         // Combine
         $ordersQuery = $ordersQuery->select([
                 'cookie_id',
+                'Cookies.name',
                 'count' => $ordersQuery->func()->sum('quantity')
-            ])->group('cookie_id');
+            ])->group('Cookies.name', 'cookie_id');
         $orders  = Hash::combine($ordersQuery->toArray(), '{n}.cookie_id', '{n}.count');
 
         $this->set(compact('orders', 'cookies', 'user'));
