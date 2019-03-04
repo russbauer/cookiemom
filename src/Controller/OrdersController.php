@@ -207,17 +207,15 @@ class OrdersController extends AppController
         $user = $this->Orders->Users->get($userId);
         $ordersQuery = $this->Orders->find('all')
             ->contain(['Cookies'])
-            ->order('Cookies.name')
-            ->where(['Orders.user_id' => $userId, 'Cookies.not_for_delivery ' => false]);
+            ->where(['Orders.user_id' => $userId, 'Cookies.not_for_delivery' => false]);
 
         $cookies = $this->Orders->Cookies->find('all')->order('Cookies.name');
 
         // Combine
         $ordersQuery = $ordersQuery->select([
-                'Orders.cookie_id',
-                'Cookies.name',
+                'cookie_id',
                 'count' => $ordersQuery->func()->sum('quantity')
-            ])->group('Cookies.name', 'Orders.cookie_id');
+            ])->group('cookie_id');
         $orders  = Hash::combine($ordersQuery->toArray(), '{n}.cookie_id', '{n}.count');
 
         $this->set(compact('orders', 'cookies', 'user'));
@@ -227,8 +225,7 @@ class OrdersController extends AppController
         $user = $this->Orders->Users->get($userId);
         $ordersQuery = $this->Orders->find('all')
             ->contain(['Cookies'])
-            ->order('Cookies.name')
-            ->where(['Orders.user_id' => $userId, 'Cookies.not_for_delivery ' => 0]);
+            ->where(['Orders.user_id' => $userId, 'Cookies.not_for_delivery' => false]);
 
         if ($this->request->is(['patch', 'post', 'put'])) {    
             $request = $this->request->getData();    
