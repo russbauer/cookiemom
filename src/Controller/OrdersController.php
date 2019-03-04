@@ -199,7 +199,7 @@ class OrdersController extends AppController
         } 
 
         $user = $this->Orders->Users->get($userId);
-        $cookies = $this->Orders->Cookies->find('all')->where('Cookies.not_for_delivery = 0')->order('Cookies.name');
+        $cookies = $this->Orders->Cookies->find('all')->where(['Cookies.not_for_delivery' => false])->order('Cookies.name');
         $this->set(compact('cookies', 'user'));
     }
 
