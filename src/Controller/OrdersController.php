@@ -215,7 +215,7 @@ class OrdersController extends AppController
         // Combine
         $ordersQuery = $ordersQuery->select([
                 'Orders.cookie_id',
-                'Cookes.name',
+                'Cookies.name',
                 'count' => $ordersQuery->func()->sum('quantity')
             ])->group('Cookies.name', 'Orders.cookie_id');
         $orders  = Hash::combine($ordersQuery->toArray(), '{n}.cookie_id', '{n}.count');
