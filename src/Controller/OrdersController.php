@@ -225,7 +225,7 @@ class OrdersController extends AppController
         $user = $this->Orders->Users->get($userId);
         $ordersQuery = $this->Orders->find('all')
             ->contain(['Cookies'])
-            ->where(['Orders.user_id' => $userId, 'Cookies.not_for_delivery' => false]);
+            ->where(['Orders.user_id' => $userId]);
 
         if ($this->request->is(['patch', 'post', 'put'])) {    
             $request = $this->request->getData();    
@@ -256,7 +256,10 @@ class OrdersController extends AppController
             ])->group('cookie_id');
         $orders  = Hash::combine($ordersQuery->toArray(), '{n}.cookie_id', '{n}.count');
 
-        $this->set(compact('orders', 'cookies', 'user', 'isCookieBooth'));
+        $digitalQuery = $this->Orders->find('all')->where(['Orders.user_id' => $userId, 'Orders.digital' => true]);
+        $digitalQuery = $digitalQuery->select(['count' => $digitalQuery->func()->count('*')]);
+        $digitalCount = $digitalQuery->toArray()[0]->count;
+        $this->set(compact('orders', 'digitalCount', 'cookies', 'user', 'isCookieBooth'));
     }
 
     public function delete($id = null)

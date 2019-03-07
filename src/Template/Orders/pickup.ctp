@@ -27,7 +27,7 @@
     ?>
     <tr class="table-info">
         <td colspan="3">
-        Total Due = <b>$<?= $total * 5 ?></b>
+        Total Due = <b>$<?= ($total - $digitalCount) * 5 ?></b>
         <?= $this->Form->control("totalCookies", [ 'type' => 'hidden', 'default' => $total]); ?>
         <?= $this->Form->control("totalMoney", [ 'type' => 'hidden', 'default' => $total * 5]); ?>
         </td>
