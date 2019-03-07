@@ -257,7 +257,7 @@ class OrdersController extends AppController
         $orders  = Hash::combine($ordersQuery->toArray(), '{n}.cookie_id', '{n}.count');
 
         $digitalQuery = $this->Orders->find('all')->where(['Orders.user_id' => $userId, 'Orders.digital' => true]);
-        $digitalQuery = $digitalQuery->select(['count' => $digitalQuery->func()->count('*')]);
+        $digitalQuery = $digitalQuery->select(['count' => $digitalQuery->func()->sum('quantity')]);
         $digitalCount = $digitalQuery->toArray()[0]->count;
         $this->set(compact('orders', 'digitalCount', 'cookies', 'user', 'isCookieBooth'));
     }
