@@ -30,7 +30,7 @@
         Total Boxes = <?= $total ?><br/>
         Digital Orders = <?= $digitalCount ?><br/>
 
-        Total Due = $<?= "({$total} - {$digitalCount}) * $5" ?> = <b><?= ($total - $digitalCount) * 5 ?></b>
+        Total Due = <?= "({$total} - {$digitalCount}) * $5" ?> = $<b><?= ($total - $digitalCount) * 5 ?></b>
         <?= $this->Form->control("totalCookies", [ 'type' => 'hidden', 'default' => $total]); ?>
         <?= $this->Form->control("totalMoney", [ 'type' => 'hidden', 'default' => $total * 5]); ?>
         </td>
