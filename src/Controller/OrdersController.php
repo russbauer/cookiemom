@@ -172,8 +172,8 @@ class OrdersController extends AppController
             $cookieBoothUser = $this->Orders->Users->find('all')->where(['access_level' => 20])->first();
             $orders = [];
             foreach ($request['order'] as $orderData) {
-                if ($orderData['quantity'] > 0) {
-                    // Add
+                if (isset($orderData['quantity']) &&  $orderData['quantity'] != 0) {
+                    // Add -- negative numbers are allowed and will subtract
                     $orderData['user_id'] = $userId;
                     $order = $this->Orders->newEntity();
                     $order = $this->Orders->patchEntity($order, $orderData);
@@ -183,7 +183,7 @@ class OrdersController extends AppController
                         return;
                     }
 
-                    // Subtract from Cookie Booth
+                    // Subtract / Add from Cookie Booth
                     $orderData['user_id'] = $cookieBoothUser->id;
                     $orderData['quantity'] = $orderData['quantity'] * -1;
                     $order = $this->Orders->newEntity();
